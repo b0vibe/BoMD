@@ -1,0 +1,20 @@
+# Keep this public repository limited to source, runtime assets and build files.
+/*
+!/.gitignore
+!/README.md
+!/LICENSE
+!/THIRD_PARTY_NOTICES.md
+!/package.json
+!/package-lock.json
+!/BoMDApp/
+!/scripts/
+/scripts/*
+!/scripts/build_app.sh
+
+.DS_Store
+*.log
+*.p12
+*.p8
+*.mobileprovision
+.env
+.env.*

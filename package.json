@@ -1,0 +1,23 @@
+{
+  "name": "bomd",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A native macOS Markdown reader with light and dark appearances.",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "zsh scripts/build_app.sh",
+    "build:web": "esbuild BoMDApp/Web/src/renderer-entry.js --bundle --format=iife --global-name=BoMDRenderer --outfile=BoMDApp/Resources/renderer-bundle.js"
+  },
+  "dependencies": {
+    "highlight.js": "^11.11.1",
+    "katex": "^0.16.22",
+    "markdown-it": "^14.1.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.5"
+  }
+}

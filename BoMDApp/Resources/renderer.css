@@ -1,0 +1,984 @@
+:root {
+  color-scheme: dark;
+  --bg: #30363a;
+  --text: #c8cdd2;
+  --fg: var(--text);
+  --html-surface: rgba(255, 255, 255, 0.055);
+  --html-foreground: var(--text);
+  --html-border: rgba(207, 212, 217, 0.28);
+  --title: #eef0f2;
+  --muted: #a7adb3;
+  --border: #4a5158;
+  --quote: #596169;
+  --code-bg: #2b2b2b;
+  --inline-code-bg: #252c31;
+  --inline-code-border: rgba(224, 229, 234, 0.12);
+  --link: #d7e3f4;
+  --button-bg: rgba(255, 255, 255, 0.08);
+  --button-border: rgba(255, 255, 255, 0.14);
+  --button-text: #d7dce1;
+  --selection-bg: #4a75a3;
+  --code-selection-bg: #315d86;
+  --code-selection-text: #f3f7fc;
+  --success: #95d18d;
+  --reading-width: clamp(720px, 68vw, 1280px);
+  --reading-gutter: clamp(40px, 8vw, 80px);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  overflow: hidden;
+  overflow-anchor: none;
+}
+
+body {
+  position: relative;
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+  font-size: 16.5px;
+  font-weight: 350;
+  line-height: 1.62;
+  letter-spacing: 0;
+}
+
+#document-scroll-area {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: flex-start;
+  justify-content: center;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+#document-scroll-area::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+main {
+  position: relative;
+  z-index: 1;
+  flex: 0 1 var(--reading-width);
+  min-width: 0;
+  width: var(--reading-width);
+  max-width: calc(100% - var(--reading-gutter));
+  margin: 0;
+  padding: 38px 0 76px;
+}
+
+#document {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+  width: var(--reading-width) !important;
+  max-width: calc(100% - var(--reading-gutter)) !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+/* Prose remains within the reading column. Code blocks keep their own
+   horizontal scrolling behavior below. */
+#document :where(p, li, blockquote, figcaption, th, td, a) {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+#document-scrollbar {
+  position: fixed;
+  z-index: 10;
+  top: 10px;
+  right: 2px;
+  width: 12px;
+  height: calc(100vh - 20px);
+  opacity: 1;
+}
+
+#document-scrollbar-thumb {
+  position: absolute;
+  top: 0;
+  left: 4px;
+  width: 4px;
+  min-height: 28px;
+  border-radius: 999px;
+  background: rgba(207, 212, 217, 0.5);
+  cursor: grab;
+}
+
+#document-scrollbar-thumb:active {
+  cursor: grabbing;
+}
+
+#selection-highlight {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.selection-line {
+  position: fixed;
+  border-radius: 2px;
+  background: var(--selection-bg);
+}
+
+.selection-line.selection-math {
+  border-radius: 4px;
+  background: rgba(80, 125, 169, 0.82);
+}
+
+/* Native selection is the reliable fallback. It is made transparent only
+   after the custom text-rectangle overlay has been rendered successfully. */
+#document::selection,
+#document *::selection {
+  background: var(--selection-bg);
+}
+
+body.has-selection-overlay #document::selection,
+body.has-selection-overlay #document *::selection {
+  background: transparent;
+}
+
+/* Code blocks keep native selection: it preserves syntax-token colors and
+   avoids interfering with text dragging inside the horizontally scrollable
+   code surface. */
+.code-block,
+.code-block pre,
+.code-block code {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+/* Keep the pre padding outside the selection. Only the code text and its
+   syntax-token spans receive the high-contrast code selection treatment. */
+#document .code-block pre::selection,
+body.has-selection-overlay #document .code-block pre::selection {
+  background: transparent;
+}
+
+#document .code-block pre code::selection,
+#document .code-block pre code *::selection,
+body.has-selection-overlay #document .code-block pre code::selection,
+body.has-selection-overlay #document .code-block pre code *::selection {
+  color: var(--code-selection-text);
+  background: var(--code-selection-bg);
+  -webkit-text-fill-color: var(--code-selection-text);
+}
+
+/* The prose selection overlay sits beneath inline-code surfaces. Hide only
+   the selected inline-code background so its text-sized rectangle matches
+   adjacent prose instead of expanding to the table-cell line width. */
+body.has-selection-overlay #document code.selection-covered-inline-code {
+  background: transparent;
+}
+
+@media (min-width: 1800px) {
+  main {
+    padding-top: 72px;
+  }
+}
+
+@media (max-width: 720px) {
+  body {
+    font-size: 17px;
+  }
+
+  main {
+    padding-top: 48px;
+  }
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: var(--title);
+  letter-spacing: 0;
+}
+
+h1 {
+  margin: 0 0 37px;
+  font-size: 40px;
+  line-height: 1.2;
+  font-weight: 450;
+}
+
+h2 {
+  margin: 32px 0 19px;
+  font-size: 27px;
+  line-height: 1.25;
+  font-weight: 450;
+}
+
+h3 {
+  margin: 26px 0 17px;
+  font-size: 21px;
+  line-height: 1.3;
+  font-weight: 450;
+}
+
+h4 {
+  margin: 22px 0 15px;
+  font-size: 19px;
+  line-height: 1.35;
+  font-weight: 400;
+}
+
+h5 {
+  margin: 22px 0 13px;
+  font-size: 17px;
+  line-height: 1.4;
+  font-weight: 400;
+}
+
+h6 {
+  margin: 20px 0 13px;
+  font-size: 16px;
+  line-height: 1.4;
+  font-weight: 400;
+}
+
+p {
+  margin: 0 0 16px;
+}
+
+strong {
+  color: var(--title);
+  font-weight: 700;
+}
+
+em {
+  font-style: italic;
+}
+
+u,
+ins {
+  text-decoration: underline;
+  text-underline-offset: 0.16em;
+}
+
+s,
+del {
+  color: var(--muted);
+  text-decoration: line-through;
+}
+
+mark {
+  border-radius: 3px;
+  padding: 0 0.16em;
+  background: rgba(238, 220, 128, 0.24);
+  color: var(--title);
+}
+
+small {
+  font-size: 0.84em;
+}
+
+big {
+  font-size: 1.22em;
+}
+
+sub,
+sup {
+  position: relative;
+  font-size: 0.75em;
+  line-height: 0;
+  vertical-align: baseline;
+}
+
+sup {
+  top: -0.5em;
+}
+
+sub {
+  bottom: -0.25em;
+}
+
+center {
+  display: block;
+  text-align: center;
+}
+
+font {
+  font: inherit;
+}
+
+a {
+  color: var(--link);
+  text-decoration: underline;
+  text-underline-offset: 0.16em;
+  text-decoration-skip-ink: none;
+}
+
+code {
+  padding: 0.08em 0.28em;
+  border: 1px solid var(--inline-code-border);
+  border-radius: 4px;
+  background: var(--inline-code-bg);
+  font-family: "SF Mono", Menlo, Monaco, Consolas, monospace;
+  font-size: 0.9em;
+}
+
+kbd {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.55em;
+  padding: 0.04em 0.42em;
+  border: 1px solid rgba(207, 212, 217, 0.28);
+  border-bottom-color: rgba(207, 212, 217, 0.42);
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.065);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.34);
+  color: var(--title);
+  font-family: "SF Mono", Menlo, Monaco, Consolas, monospace;
+  font-size: 0.82em;
+  line-height: 1;
+  vertical-align: 0.08em;
+}
+
+details {
+  margin: 0 0 18px;
+  border: 1px solid rgba(207, 212, 217, 0.18);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.025);
+  overflow: hidden;
+}
+
+summary {
+  padding: 10px 12px;
+  color: var(--fg);
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+}
+
+summary:hover {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--title);
+}
+
+details[open] > summary {
+  margin-bottom: 10px;
+  border-bottom: 1px solid rgba(207, 212, 217, 0.14);
+}
+
+details[open] > :not(summary) {
+  margin-right: 12px;
+  margin-left: 12px;
+}
+
+.footnote-ref {
+  position: relative;
+  top: -0.22em;
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.18em;
+  margin: 0 0.08em;
+  padding: 0.02em 0.34em 0.04em;
+  border-radius: 5px;
+  background: rgba(220, 224, 228, 0.22);
+  color: var(--title);
+  font-size: 0.78em;
+  line-height: 1;
+  vertical-align: 0.16em;
+  cursor: default;
+}
+
+.footnote-ref:focus-visible {
+  outline: 1px solid rgba(220, 224, 228, 0.45);
+  outline-offset: 2px;
+}
+
+.footnotes {
+  margin: 34px 0 0;
+  color: var(--muted);
+  font-size: 0.92em;
+}
+
+.footnote-item {
+  margin: 0 0 14px;
+}
+
+.footnote-key {
+  font-weight: 550;
+}
+
+.footnote-content p {
+  display: inline;
+  margin: 0;
+}
+
+.footnote-backref {
+  margin-left: 0.4em;
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.footnote-popover {
+  position: fixed;
+  z-index: 10;
+  max-width: min(420px, calc(100vw - 24px));
+  padding: 8px 12px;
+  border-radius: 5px;
+  background: #111315;
+  color: #d9dde1;
+  font-size: 14px;
+  line-height: 1.5;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.35);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-2px);
+  transition: opacity 90ms ease, transform 90ms ease;
+}
+
+.footnote-popover.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.footnote-popover p {
+  display: inline;
+  margin: 0;
+}
+
+ul,
+ol {
+  margin: 0 0 18px;
+  padding-left: 1.6em;
+}
+
+li {
+  margin-bottom: 7px;
+  padding-left: 0.1em;
+}
+
+li > ul,
+li > ol {
+  margin-top: 7px;
+  margin-bottom: 7px;
+  padding-left: 1.5em;
+}
+
+.task-list {
+  padding-left: 0.25em;
+  list-style: none;
+}
+
+.task-list-item {
+  position: relative;
+  min-height: 1.62em;
+  padding-left: 2em;
+  list-style: none;
+}
+
+.task-checkbox {
+  position: absolute;
+  top: 0.38em;
+  left: 0;
+  width: 0.96em;
+  height: 0.96em;
+  border: 1.5px solid rgba(200, 205, 210, 0.54);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.025);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.task-checkbox.is-checked {
+  border-color: rgba(220, 224, 228, 0.78);
+  background: rgba(220, 224, 228, 0.82);
+  box-shadow: 0 0 0 2px rgba(220, 224, 228, 0.08);
+}
+
+.task-checkbox.is-checked::after {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0.28em;
+  height: 0.52em;
+  border-right: 2px solid #30363a;
+  border-bottom: 2px solid #30363a;
+  content: "";
+  transform: translate(-50%, -58%) rotate(42deg);
+}
+
+.task-list-item.is-checked {
+  color: var(--muted);
+}
+
+blockquote {
+  margin: 32px 0;
+  padding: 2px 0 2px 44px;
+  border-left: 4px solid var(--quote);
+  color: var(--muted);
+}
+
+blockquote p:last-child {
+  margin-bottom: 0;
+}
+
+.table-wrap {
+  margin: 30px 0;
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+
+.table-wrap:focus-visible {
+  outline: 2px solid var(--link);
+  outline-offset: 3px;
+}
+
+/* Keep the horizontal affordance visible even with macOS overlay scrollbars. */
+.table-wrap::-webkit-scrollbar {
+  height: 10px;
+}
+
+.table-wrap::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.055);
+  border-radius: 5px;
+}
+
+.table-wrap::-webkit-scrollbar-thumb {
+  background: var(--quote);
+  border-radius: 5px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 17px;
+  line-height: 1.5;
+}
+
+th,
+td {
+  padding: 9px 12px;
+  border: 1px solid var(--border);
+  text-align: left;
+  vertical-align: top;
+  overflow-wrap: break-word;
+  word-break: normal;
+}
+
+#document table.has-smart-columns {
+  table-layout: fixed;
+}
+
+#document table.has-smart-columns .table-column-compact {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+#document table.has-smart-columns .table-column-key {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+#document table.has-smart-columns .table-column-flex {
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+th {
+  color: var(--title);
+  font-weight: 650;
+}
+
+.code-block {
+  margin: 24px 0;
+  border-radius: 6px;
+  background: var(--code-bg);
+  overflow: hidden;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+}
+
+.code-titlebar {
+  display: flex;
+  min-height: 34px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 0 8px 0 14px;
+  background: #272a2d;
+  border-bottom: 1px solid rgba(180, 188, 196, 0.12);
+}
+
+.code-titlebar,
+.code-titlebar * {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.code-actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 4px;
+  align-items: center;
+}
+
+.code-action-cluster {
+  display: inline-flex;
+  align-items: center;
+}
+
+.code-language {
+  min-width: 0;
+  color: var(--muted);
+  font: 600 12px/1.4 system-ui, -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif;
+  text-transform: lowercase;
+}
+
+.code-actions button {
+  appearance: none;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  color: var(--button-text);
+  background: transparent;
+  cursor: pointer;
+}
+
+.code-actions button:hover {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.1);
+  color: #f1f4f7;
+}
+
+.code-actions button:focus-visible {
+  outline: 2px solid rgba(126, 181, 255, 0.85);
+  outline-offset: 2px;
+}
+
+.code-actions button[data-tooltip]::after {
+  position: absolute;
+  z-index: 2;
+  top: calc(100% + 7px);
+  right: 0;
+  padding: 5px 7px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 5px;
+  color: #dce2e8;
+  background: #1d1f22;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.24);
+  content: attr(data-tooltip);
+  font: 500 11px/1.2 system-ui, -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-3px);
+  transition: opacity 140ms ease, transform 140ms ease;
+  white-space: nowrap;
+}
+
+.code-actions button[data-tooltip]:hover::after,
+.code-actions button[data-tooltip]:focus-visible::after {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.code-action-icon,
+.copy-check {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.code-action-icon {
+  width: 16px;
+  height: 16px;
+  background-color: currentColor;
+}
+
+.wrap-icon {
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 6h18'/%3E%3Cpath d='M3 12h18'/%3E%3Cpath d='M3 18h18'/%3E%3C/svg%3E") center / 16px 16px no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 6h18'/%3E%3Cpath d='M3 12h18'/%3E%3Cpath d='M3 18h18'/%3E%3C/svg%3E") center / 16px 16px no-repeat;
+}
+
+button[data-toggle-wrap][aria-pressed="true"] .wrap-icon {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 6h18'/%3E%3Cpath d='M3 12h13a3 3 0 0 1 0 6h-4'/%3E%3Cpath d='m12 15-3 3 3 3'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 6h18'/%3E%3Cpath d='M3 12h13a3 3 0 0 1 0 6h-4'/%3E%3Cpath d='m12 15-3 3 3 3'/%3E%3C/svg%3E");
+}
+
+.copy-icon {
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect width='14' height='14' x='7' y='7' rx='2' ry='2'/%3E%3Cpath d='M3 15c0-1.1.9-2 2-2h2'/%3E%3Cpath d='M15 3H5c-1.1 0-2 .9-2 2v10'/%3E%3C/svg%3E") center / 16px 16px no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect width='14' height='14' x='7' y='7' rx='2' ry='2'/%3E%3Cpath d='M3 15c0-1.1.9-2 2-2h2'/%3E%3Cpath d='M15 3H5c-1.1 0-2 .9-2 2v10'/%3E%3C/svg%3E") center / 16px 16px no-repeat;
+}
+
+.copy-check {
+  width: 14px;
+  height: 14px;
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.78);
+}
+
+.copy-check::before,
+.copy-check::after {
+  position: absolute;
+  content: "";
+}
+
+.copy-check::before {
+  inset: 1px;
+  border: 1.5px solid var(--success);
+  border-radius: 999px;
+}
+
+.copy-check::after {
+  left: 4px;
+  top: 4px;
+  width: 6px;
+  height: 3px;
+  border-left: 1.5px solid var(--success);
+  border-bottom: 1.5px solid var(--success);
+  transform: rotate(-45deg);
+  transform-origin: center;
+}
+
+.copy-control.is-copied .copy-icon {
+  animation: copy-icon-cycle 1200ms ease both;
+}
+
+.copy-control.is-copied .copy-check {
+  animation: copy-check-cycle 1200ms ease both;
+}
+
+.code-scroll {
+  position: relative;
+}
+
+pre {
+  margin: 0;
+  padding: 20px 24px 22px;
+  overflow: visible;
+  color: #c8cdd2;
+  font: 15px/1.5 "SF Mono", Menlo, Monaco, Consolas, monospace;
+  tab-size: 2;
+  white-space: pre-wrap;
+  word-break: break-word;
+  scrollbar-width: none;
+}
+
+pre::-webkit-scrollbar {
+  display: none;
+}
+
+.code-block.no-wrap pre {
+  overflow-x: auto;
+  overflow-y: hidden;
+  white-space: pre;
+  word-break: normal;
+}
+
+.code-scrollbar {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: 8px;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.055);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 180ms ease;
+}
+
+.code-scrollbar-thumb {
+  position: absolute;
+  left: 0;
+  width: 72px;
+  height: 100%;
+  border-radius: 999px;
+  background: rgba(207, 212, 217, 0.45);
+  transform: translateX(0);
+}
+
+.code-block.is-scrolling .code-scrollbar,
+.code-block.no-wrap:hover .code-scrollbar {
+  opacity: 1;
+}
+
+pre code {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  font: inherit;
+}
+
+.code-block pre code.hljs {
+  display: block;
+  padding: 0;
+  background: transparent;
+}
+
+@keyframes copy-icon-cycle {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+  18%,
+  68% {
+    opacity: 0;
+    transform: translate(-50%, calc(-50% - 2px));
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}
+
+@keyframes copy-check-cycle {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.72);
+  }
+  24%,
+  66% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.84);
+  }
+}
+
+.katex {
+  color: var(--text);
+}
+
+.katex-display {
+  margin: 32px 0;
+  max-width: 100%;
+  padding-bottom: 2px;
+  overflow: visible;
+}
+
+.katex-display > .katex {
+  display: inline-block;
+  min-width: max-content;
+}
+
+.math-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: visible;
+}
+
+figure,
+p:has(> img:only-child),
+p:has(> .image-load-error:only-child) {
+  margin: 30px 0;
+  text-align: center;
+}
+
+img {
+  display: inline-block;
+  max-width: 100%;
+  height: auto;
+}
+
+.image-load-error {
+  display: inline-block;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--muted);
+  font-size: 0.9em;
+}
+
+hr {
+  margin: 38px 0;
+  border: 0;
+  border-top: 1px solid var(--border);
+}
+
+.empty-document {
+  color: var(--muted);
+}
+
+/* Appearance only: keep every dimension and the original dark palette intact. */
+@media (prefers-color-scheme: light) {
+  :root {
+    color-scheme: light;
+    --bg: #f8f9fa;
+    --text: #334155;
+    --title: #182230;
+    --muted: #626f80;
+    --border: #d4dbe3;
+    --quote: #a7b5c5;
+    --code-bg: #f0f2f5;
+    --inline-code-bg: #edf0f4;
+    --inline-code-border: #d9e0e8;
+    --link: #245f9e;
+    --button-bg: #e9edf2;
+    --button-border: #cdd5df;
+    --button-text: #4b5d72;
+    --selection-bg: #cbdff5;
+    --code-selection-bg: #cbdff5;
+    --code-selection-text: #182230;
+    --success: #28724a;
+    /* Use original document colors for surfaces already designed to be light. */
+    --html-surface: initial;
+    --html-foreground: initial;
+    --html-border: initial;
+  }
+
+  #document-scrollbar-thumb { background: #9ba9b9; }
+  .selection-line.selection-math { background: rgba(177, 205, 235, 0.82); }
+  mark { background: #f5e7af; }
+  kbd {
+    border-color: #cbd3dd;
+    border-bottom-color: #aab7c6;
+    background: #f0f3f6;
+    box-shadow: 0 1px 0 rgba(40, 57, 77, 0.12);
+  }
+  details { border-color: #d4dbe3; background: #f1f4f7; }
+  summary:hover { background: #e8edf3; }
+  details[open] > summary { border-bottom-color: #d4dbe3; }
+  .footnote-ref { background: #e1e9f2; }
+  .footnote-ref:focus-visible { outline-color: #245f9e; }
+  .footnote-popover {
+    background: #fff;
+    color: #334155;
+    box-shadow: 0 8px 22px rgba(35, 53, 75, 0.14), inset 0 0 0 1px #d4dbe3;
+  }
+  .task-checkbox { border-color: #8395aa; background: #fff; box-shadow: none; }
+  .task-checkbox.is-checked { border-color: #456a92; background: #456a92; box-shadow: none; }
+  .task-checkbox.is-checked::after { border-color: #fff; }
+  .table-wrap::-webkit-scrollbar-track { background: #e6ebf0; }
+  .code-block { box-shadow: inset 0 1px 0 rgba(35, 53, 75, 0.06); }
+  .code-titlebar { background: #e8edf2; border-bottom-color: #d4dbe3; }
+  .code-actions button:hover { border-color: #c3cddb; background: #dce4ed; color: #182230; }
+  .code-actions button:focus-visible { outline-color: #245f9e; }
+  .code-actions button[data-tooltip]::after {
+    border-color: #cdd5df;
+    color: #334155;
+    background: #fff;
+    box-shadow: 0 4px 12px rgba(35, 53, 75, 0.14);
+  }
+  pre { color: #334155; }
+  .code-scrollbar { background: #dde4ed; }
+  .code-scrollbar-thumb { background: #96a7ba; }
+}

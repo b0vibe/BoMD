@@ -2,6 +2,16 @@
 
 一款轻量的原生 macOS Markdown 阅读器，专注于阅读本地 Markdown 文档。
 
+## 下载与安装
+
+从 [最新 Release](https://github.com/b0vibe/BoMD/releases/latest) 下载 DMG 安装包，无需自行编译。
+
+1. 下载 Release 附件中的 `BoMD-1.0-macOS-arm64.dmg`（不是 GitHub 自动生成的 Source code 源码压缩包）。
+2. 双击 DMG，将 `BoMD.app` 拖入 `Applications`。
+3. 从「应用程序」打开 BoMD；升级前请先退出现有版本。
+
+正式安装包使用 Developer ID 签名并通过 Apple 公证。仅支持 Apple Silicon、macOS 26.0 及以上；访问文稿等受保护文件夹时仍需按系统提示授权。无需关闭 Gatekeeper 或 SIP。
+
 ## 功能
 
 - 通过文件菜单、拖放或 Finder 打开 `.md` / `.markdown` 文件。
